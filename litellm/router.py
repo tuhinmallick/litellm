@@ -117,16 +117,13 @@ class Router:
     def get_available_deployment(self, 
                                model: str, 
                                messages: Optional[List[Dict[str, str]]]=None,
-                               input: Optional[Union[str, List]]=None): 
+                               input: Optional[Union[str, List]]=None):
         """
         Returns a deployment with the lowest TPM/RPM usage.
         """
-        # get list of potential deployments 
-        potential_deployments = [] 
-        for item in self.model_list: 
-            if item["model_name"] == model: 
-                potential_deployments.append(item)
-        
+        potential_deployments = [
+            item for item in self.model_list if item["model_name"] == model
+        ]
         # set first model as current model
         deployment = potential_deployments[0] 
 
@@ -138,16 +135,13 @@ class Router:
         # get deployment current usage
         current_tpm, current_rpm = self._get_deployment_usage(deployment_name=deployment["litellm_params"]["model"])
 
-        # get encoding 
+        # get encoding
         if messages:
             token_count = litellm.token_counter(model=deployment["model_name"], messages=messages)
         elif input:
-            if isinstance(input, List):
-                input_text = "".join(text for text in input)
-            else:
-                input_text = input
+            input_text = "".join(input) if isinstance(input, List) else input
             token_count = litellm.token_counter(model=deployment["model_name"], text=input_text)
-        
+
         # if at model limit, return lowest used
         if current_tpm + token_count > tpm or current_rpm + 1 >= rpm: 
             # -----------------------
@@ -167,10 +161,10 @@ class Router:
                 elif item_tpm < lowest_tpm:
                     lowest_tpm = item_tpm
                     deployment = item
-        
-            # if none, raise exception 
+
+            # if none, raise exception
             if deployment is None: 
-                raise ValueError(f"No models available.")
+                raise ValueError("No models available.")
 
         # return model 
         return deployment

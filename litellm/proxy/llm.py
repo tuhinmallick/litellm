@@ -53,12 +53,10 @@ def handle_llm_exception(e: Exception, user_api_base: Optional[str]=None):
     if isinstance(e, ServiceUnavailableError) and e.llm_provider == "ollama": # type: ignore
         run_ollama_serve()
     if isinstance(e, InvalidRequestError) and e.llm_provider == "ollama": # type: ignore
-        completion_call_details = {}
-        completion_call_details["model"] = e.model # type: ignore
-        if user_api_base: 
-            completion_call_details["api_base"] = user_api_base
-        else: 
-            completion_call_details["api_base"] = None
+        completion_call_details = {
+            "model": e.model,
+            "api_base": user_api_base if user_api_base else None,
+        }
         print(f"\033[1;31mLiteLLM.Exception: Invalid API Call. Call details: Model: \033[1;37m{e.model}\033[1;31m; LLM Provider: \033[1;37m{e.llm_provider}\033[1;31m; Custom API Base - \033[1;37m{completion_call_details['api_base']}\033[1;31m\033[0m") # type: ignore
         if completion_call_details["api_base"] == "http://localhost:11434": 
             print()

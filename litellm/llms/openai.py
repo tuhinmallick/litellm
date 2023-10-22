@@ -247,7 +247,7 @@ class OpenAIChatCompletion(BaseLLM):
         super().completion()
         headers = self.validate_environment(api_key=api_key)
         if model is None or messages is None:
-            raise CustomOpenAIError(status_code=422, message=f"Missing model or messages")
+            raise CustomOpenAIError(status_code=422, message="Missing model or messages")
 
         for _ in range(2): # if call fails due to alternating messages, retry with reformatted message
             data = {
@@ -265,7 +265,7 @@ class OpenAIChatCompletion(BaseLLM):
                     )
                     if response.status_code != 200:
                         raise CustomOpenAIError(status_code=response.status_code, message=response.text)
-                        
+
                     ## RESPONSE OBJECT
                     return response.iter_lines()
                 else:
@@ -276,7 +276,7 @@ class OpenAIChatCompletion(BaseLLM):
                     )
                     if response.status_code != 200:
                         raise CustomOpenAIError(status_code=response.status_code, message=response.text)
-                        
+
                     ## RESPONSE OBJECT
                     return self.convert_to_model_response_object(response_object=response.json(), model_response_object=model_response)
             except Exception as e:

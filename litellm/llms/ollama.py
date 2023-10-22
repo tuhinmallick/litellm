@@ -108,7 +108,7 @@ def get_ollama_response_stream(
         url = api_base
     else: 
         url = f"{api_base}/api/generate"
-    
+
     ## Load Config
     config=litellm.OllamaConfig.get_config()
     for k, v in config.items():
@@ -132,19 +132,13 @@ def get_ollama_response_stream(
                         if chunk.strip() != "":
                             j = json.loads(chunk)
                             if "error" in j:
-                                completion_obj = {
+                                yield {
                                     "role": "assistant",
                                     "content": "",
-                                    "error": j
+                                    "error": j,
                                 }
-                                yield completion_obj
                             if "response" in j:
-                                completion_obj = {
-                                    "role": "assistant",
-                                    "content": "",
-                                }
-                                completion_obj["content"] = j["response"]
-                                yield completion_obj
+                                yield {"role": "assistant", "content": j["response"]}
                 except Exception as e:
                     traceback.print_exc()
                     print(f"Error decoding JSON: {e}")

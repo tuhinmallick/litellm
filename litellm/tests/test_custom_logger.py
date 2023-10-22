@@ -76,7 +76,6 @@ def test_chat_openai():
 
     except Exception as e:
         print(e)
-        pass
 
 
 test_chat_openai()

@@ -9,68 +9,53 @@ def default_pt(messages):
 
 # Llama2 prompt template
 def llama_2_chat_pt(messages):
-    prompt = custom_prompt(
+    return custom_prompt(
         role_dict={
             "system": {
                 "pre_message": "[INST] <<SYS>>\n",
-                "post_message": "\n<</SYS>>\n [/INST]\n"
+                "post_message": "\n<</SYS>>\n [/INST]\n",
             },
-            "user": { # follow this format https://github.com/facebookresearch/llama/blob/77062717054710e352a99add63d160274ce670c6/llama/generation.py#L348
+            "user": {  # follow this format https://github.com/facebookresearch/llama/blob/77062717054710e352a99add63d160274ce670c6/llama/generation.py#L348
                 "pre_message": "[INST] ",
-                "post_message": " [/INST]\n"
-            }, 
+                "post_message": " [/INST]\n",
+            },
             "assistant": {
-                "post_message": "\n" # follows this - https://replicate.com/blog/how-to-prompt-llama
-            }
+                "post_message": "\n"  # follows this - https://replicate.com/blog/how-to-prompt-llama
+            },
         },
         messages=messages,
         bos_token="<s>",
-        eos_token="</s>"
+        eos_token="</s>",
     )
-    return prompt
 
 def ollama_pt(messages): # https://github.com/jmorganca/ollama/blob/af4cf55884ac54b9e637cd71dadfe9b7a5685877/docs/modelfile.md#template
-    prompt = custom_prompt(
+    return custom_prompt(
         role_dict={
-            "system": {
-                "pre_message": "### System:\n",
-                "post_message": "\n"
-            }, 
+            "system": {"pre_message": "### System:\n", "post_message": "\n"},
             "user": {
                 "pre_message": "### User:\n",
                 "post_message": "\n",
-            }, 
+            },
             "assistant": {
                 "pre_message": "### Response:\n",
                 "post_message": "\n",
-            }
+            },
         },
         final_prompt_value="### Response:",
-        messages=messages
+        messages=messages,
     )
-    return prompt
 
 def mistral_instruct_pt(messages): 
-    prompt = custom_prompt(
+    return custom_prompt(
         initial_prompt_value="<s>",
         role_dict={
-            "system": {
-                "pre_message": "[INST]",
-                "post_message": "[/INST]"
-            }, 
-            "user": {
-                "pre_message": "[INST]", 
-                "post_message": "[/INST]"
-            },
-            "assistant": {
-                "pre_message": "[INST]",
-                "post_message": "[/INST]"
-            }
+            "system": {"pre_message": "[INST]", "post_message": "[/INST]"},
+            "user": {"pre_message": "[INST]", "post_message": "[/INST]"},
+            "assistant": {"pre_message": "[INST]", "post_message": "[/INST]"},
         },
         final_prompt_value="</s>",
-        messages=messages
+        messages=messages,
     )
-    return prompt
 
 # Falcon prompt template - from https://github.com/lm-sys/FastChat/blob/main/fastchat/conversation.py#L110
 def falcon_instruct_pt(messages):
@@ -204,11 +189,12 @@ def hf_chat_template(model: str, messages: list):
 
 # Anthropic template 
 def anthropic_pt(messages: list): # format - https://docs.anthropic.com/claude/reference/complete_post
+
     class AnthropicConstants(Enum):
         HUMAN_PROMPT = "\n\nHuman: "
         AI_PROMPT = "\n\nAssistant: "
-    
-    prompt = "" 
+
+    prompt = ""
     for idx, message in enumerate(messages): # needs to start with `\n\nHuman: ` and end with `\n\nAssistant: `
         if message["role"] == "user":
             prompt += (
@@ -223,7 +209,7 @@ def anthropic_pt(messages: list): # format - https://docs.anthropic.com/claude/r
                 f"{AnthropicConstants.AI_PROMPT.value}{message['content']}"
             )
         if idx == 0 and message["role"] == "assistant": # ensure the prompt always starts with `\n\nHuman: `
-            prompt = f"{AnthropicConstants.HUMAN_PROMPT.value}" + prompt
+            prompt = f"{AnthropicConstants.HUMAN_PROMPT.value}{prompt}"
     prompt += f"{AnthropicConstants.AI_PROMPT.value}"
     return prompt 
 

@@ -85,29 +85,20 @@ def completion(
     palm.configure(api_key=api_key)
 
     model = model
-    
+
     ## Load Config
     inference_params = copy.deepcopy(optional_params)
     inference_params.pop("stream", None) # palm does not support streaming, so we handle this by fake streaming in main.py
-    config = litellm.PalmConfig.get_config() 
+    config = litellm.PalmConfig.get_config()
     for k, v in config.items(): 
         if k not in inference_params: # completion(top_k=3) > palm_config(top_k=3) <- allows for dynamic variables to be passed in
             inference_params[k] = v
 
     prompt = ""
     for message in messages:
-        if "role" in message:
-            if message["role"] == "user":
-                prompt += (
-                    f"{message['content']}"
-                )
-            else:
-                prompt += (
-                    f"{message['content']}"
-                )
-        else:
-            prompt += f"{message['content']}"
-    
+        prompt += (
+            f"{message['content']}"
+        )
     ## LOGGING
     logging_obj.pre_call(
             input=prompt,
@@ -150,13 +141,13 @@ def completion(
     ## CALCULATING USAGE - baseten charges on time, not tokens - have some mapping of cost here. 
     prompt_tokens = len(
         encoding.encode(prompt)
-    ) 
+    )
     completion_tokens = len(
         encoding.encode(model_response["choices"][0]["message"].get("content", ""))
     )
 
     model_response["created"] = time.time()
-    model_response["model"] = "palm/" + model
+    model_response["model"] = f"palm/{model}"
     model_response["usage"] = {
         "prompt_tokens": prompt_tokens,
         "completion_tokens": completion_tokens,
