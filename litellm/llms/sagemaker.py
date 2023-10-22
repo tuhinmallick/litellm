@@ -69,16 +69,7 @@ def completion(
     aws_access_key_id = optional_params.pop("aws_access_key_id", None)
     aws_region_name = optional_params.pop("aws_region_name", None)
 
-    if aws_access_key_id != None:
-        # uses auth params passed to completion
-        # aws_access_key_id is not None, assume user is trying to auth using litellm.completion
-        client = boto3.client(
-            service_name="sagemaker-runtime",
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            region_name=aws_region_name,
-        )
-    else:
+    if aws_access_key_id is None:
         # aws_access_key_id is None, assume user is trying to auth using env variables 
         # boto3 automaticaly reads env variables
 
@@ -92,13 +83,22 @@ def completion(
             service_name="sagemaker-runtime",
             region_name=region_name,
         )
-    
+
+    else:
+        # uses auth params passed to completion
+        # aws_access_key_id is not None, assume user is trying to auth using litellm.completion
+        client = boto3.client(
+            service_name="sagemaker-runtime",
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=aws_region_name,
+        )
     # pop streaming if it's in the optional params as 'stream' raises an error with sagemaker
     inference_params = deepcopy(optional_params)
     inference_params.pop("stream", None)
 
     ## Load Config
-    config = litellm.SagemakerConfig.get_config() 
+    config = litellm.SagemakerConfig.get_config()
     for k, v in config.items(): 
         if k not in inference_params: # completion(top_k=3) > sagemaker_config(top_k=3) <- allows for dynamic variables to be passed in
             inference_params[k] = v
@@ -106,18 +106,9 @@ def completion(
     model = model
     prompt = ""
     for message in messages:
-        if "role" in message:
-            if message["role"] == "user":
-                prompt += (
-                    f"{message['content']}"
-                )
-            else:
-                prompt += (
-                    f"{message['content']}"
-                )
-        else:
-            prompt += f"{message['content']}"
-
+        prompt += (
+            f"{message['content']}"
+        )
     data = {
         "inputs": prompt,
         "parameters": inference_params
@@ -152,17 +143,16 @@ def completion(
             message=completion_response["error"],
             status_code=response.status_code,
         )
-    else:
-        try:
-            if len(completion_response[0]["generation"]) > 0: 
-                model_response["choices"][0]["message"]["content"] = completion_response[0]["generation"]
-        except:
-            raise SagemakerError(message=json.dumps(completion_response), status_code=response.status_code)
+    try:
+        if len(completion_response[0]["generation"]) > 0: 
+            model_response["choices"][0]["message"]["content"] = completion_response[0]["generation"]
+    except:
+        raise SagemakerError(message=json.dumps(completion_response), status_code=response.status_code)
 
     ## CALCULATING USAGE - baseten charges on time, not tokens - have some mapping of cost here. 
     prompt_tokens = len(
         encoding.encode(prompt)
-    ) 
+    )
     completion_tokens = len(
         encoding.encode(model_response["choices"][0]["message"].get("content", ""))
     )

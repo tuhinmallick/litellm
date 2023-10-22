@@ -40,18 +40,21 @@ def open_config(file_path=None):
             print("\033[1;32mDone successfully\033[0m")
         except Exception as e:
             print(f"Failed to copy {file_path}: {e}")
-    else: 
-        if os.path.exists(user_config_path):
-            if os.path.getsize(user_config_path) == 0:
-                print(f"{user_config_path} exists but is empty")
-                print(f"To create a config (save keys, modify model prompt), copy the template located here: https://docs.litellm.ai/docs/proxy_server")
-            else: 
-                with open(user_config_path) as f:
-                    print(f"Saved Config file: {user_config_path}")
-                    print(f.read())
-        else:
-            print(f"{user_config_path} hasn't been created yet.")
-            print(f"To create a config (save keys, modify model prompt), copy the template located here: https://docs.litellm.ai/docs/proxy_server")
+    elif os.path.exists(user_config_path):
+        if os.path.getsize(user_config_path) == 0:
+            print(f"{user_config_path} exists but is empty")
+            print(
+                "To create a config (save keys, modify model prompt), copy the template located here: https://docs.litellm.ai/docs/proxy_server"
+            )
+        else: 
+            with open(user_config_path) as f:
+                print(f"Saved Config file: {user_config_path}")
+                print(f.read())
+    else:
+        print(f"{user_config_path} hasn't been created yet.")
+        print(
+            "To create a config (save keys, modify model prompt), copy the template located here: https://docs.litellm.ai/docs/proxy_server"
+        )
     print(f"LiteLLM: config location - {user_config_path}")
 
 
@@ -87,23 +90,23 @@ def is_port_in_use(port):
 @click.option('--port', default=8000, help='Port to bind the server to.')
 @click.option('--api_base', default=None, help='API base URL.')
 @click.option('--api_version', default="2023-07-01-preview", help='For azure - pass in the api version.')
-@click.option('--model', '-m', default=None, help='The model name to pass to litellm expects') 
-@click.option('--alias', default=None, help='The alias for the model - use this to give a litellm model name (e.g. "huggingface/codellama/CodeLlama-7b-Instruct-hf") a more user-friendly name ("codellama")') 
-@click.option('--add_key', default=None, help='The model name to pass to litellm expects') 
-@click.option('--headers', default=None, help='headers for the API call') 
+@click.option('--model', '-m', default=None, help='The model name to pass to litellm expects')
+@click.option('--alias', default=None, help='The alias for the model - use this to give a litellm model name (e.g. "huggingface/codellama/CodeLlama-7b-Instruct-hf") a more user-friendly name ("codellama")')
+@click.option('--add_key', default=None, help='The model name to pass to litellm expects')
+@click.option('--headers', default=None, help='headers for the API call')
 @click.option('--save', is_flag=True, type=bool, help='Save the model-specific config')
-@click.option('--debug', default=False, is_flag=True, type=bool, help='To debug the input') 
-@click.option('--temperature', default=None, type=float, help='Set temperature for the model') 
-@click.option('--max_tokens', default=None, type=int, help='Set max tokens for the model') 
-@click.option('--request_timeout', default=600, type=int, help='Set timeout in seconds for completion calls') 
-@click.option('--drop_params', is_flag=True, help='Drop any unmapped params') 
-@click.option('--create_proxy', is_flag=True, help='Creates a local OpenAI-compatible server template') 
-@click.option('--add_function_to_prompt', is_flag=True, help='If function passed but unsupported, pass it as prompt') 
-@click.option('--config', '-c', is_flag=True, help='Configure Litellm')  
+@click.option('--debug', default=False, is_flag=True, type=bool, help='To debug the input')
+@click.option('--temperature', default=None, type=float, help='Set temperature for the model')
+@click.option('--max_tokens', default=None, type=int, help='Set max tokens for the model')
+@click.option('--request_timeout', default=600, type=int, help='Set timeout in seconds for completion calls')
+@click.option('--drop_params', is_flag=True, help='Drop any unmapped params')
+@click.option('--create_proxy', is_flag=True, help='Creates a local OpenAI-compatible server template')
+@click.option('--add_function_to_prompt', is_flag=True, help='If function passed but unsupported, pass it as prompt')
+@click.option('--config', '-c', is_flag=True, help='Configure Litellm')
 @click.option('--file', '-f', help='Path to config file')
-@click.option('--max_budget', default=None, type=float, help='Set max budget for API calls - works for hosted models like OpenAI, TogetherAI, Anthropic, etc.`') 
-@click.option('--telemetry', default=True, type=bool, help='Helps us know if people are using this feature. Turn this off by doing `--telemetry False`') 
-@click.option('--logs', flag_value=False, type=int, help='Gets the "n" most recent logs. By default gets most recent log.') 
+@click.option('--max_budget', default=None, type=float, help='Set max budget for API calls - works for hosted models like OpenAI, TogetherAI, Anthropic, etc.`')
+@click.option('--telemetry', default=True, type=bool, help='Helps us know if people are using this feature. Turn this off by doing `--telemetry False`')
+@click.option('--logs', flag_value=False, type=int, help='Gets the "n" most recent logs. By default gets most recent log.')
 @click.option('--test', flag_value=True, help='proxy chat completions url to make a test request to')
 @click.option('--local', is_flag=True, default=False, help='for local debugging')
 @click.option('--cost', is_flag=True, default=False, help='for viewing cost logs')
@@ -160,7 +163,7 @@ def run_server(host, port, api_base, api_version, model, alias, add_key, headers
         print("\033[1;32mDone successfully\033[0m")
         return
     if model and "ollama" in model: 
-        print(f"ollama called")
+        print("ollama called")
         run_ollama_serve()
     if cost == True:
         print_cost_logs()
@@ -168,10 +171,7 @@ def run_server(host, port, api_base, api_version, model, alias, add_key, headers
     if test != False:
         click.echo('LiteLLM: Making a test ChatCompletions request to your proxy')
         import openai
-        if test == True: # flag value set
-            api_base = f"http://{host}:{port}"
-        else: 
-            api_base = test
+        api_base = f"http://{host}:{port}" if test == True else test
         openai.api_base = api_base
         openai.api_key = "temp-key"
         print(openai.api_base)
@@ -207,7 +207,7 @@ def run_server(host, port, api_base, api_version, model, alias, add_key, headers
         print(f"\033[32mLiteLLM: Test your local endpoint with: \"litellm --test\" [In a new terminal tab]\033[0m\n")
         print(f"\033[32mLiteLLM: View available endpoints for this server on: http://{host}:{port}\033[0m\n")
         print(f"\033[32mLiteLLM: Self-host your proxy using the following: https://docs.litellm.ai/docs/proxy_server#deploy-proxy \033[0m\n")
-        
+
         if port == 8000 and is_port_in_use(port):
             port = random.randint(1024, 49152)
         uvicorn.run(app, host=host, port=port)

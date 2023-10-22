@@ -140,8 +140,7 @@ def print_verbose(print_statement):
 def find_avatar_url(role):
     role = role.replace(" ", "%20")
     avatar_filename = f"avatars/{role}.png"
-    avatar_url = f"/static/{avatar_filename}"
-    return avatar_url
+    return f"/static/{avatar_filename}"
 
 
 def usage_telemetry(
@@ -247,7 +246,7 @@ def load_config():
             for model in user_config["model"]:
                 if "model_list" in user_config["model"][model]:
                     model_list.extend(user_config["model"][model]["model_list"])
-            if len(model_list) > 0:
+            if model_list:
                 model_router.set_model_list(model_list=model_list)
 
         print_verbose(f"user_config: {user_config}")
@@ -387,23 +386,19 @@ def track_cost_callback(
     try:
         # for streaming responses
         if "complete_streaming_response" in kwargs:
-            # for tracking streaming cost we pass the "messages" and the output_text to litellm.completion_cost
-            completion_response = kwargs["complete_streaming_response"]
             input_text = kwargs["messages"]
+            completion_response = kwargs["complete_streaming_response"]
             output_text = completion_response["choices"][0]["message"]["content"]
             response_cost = litellm.completion_cost(
                 model=kwargs["model"], messages=input_text, completion=output_text
             )
             model = kwargs["model"]
 
-        # for non streaming responses
-        else:
-            # we pass the completion_response obj
-            if kwargs["stream"] != True:
-                response_cost = litellm.completion_cost(
-                    completion_response=completion_response
-                )
-                model = completion_response["model"]
+        elif kwargs["stream"] != True:
+            response_cost = litellm.completion_cost(
+                completion_response=completion_response
+            )
+            model = completion_response["model"]
 
         # read/write from json for storing daily model costs
         cost_data = {}
@@ -475,7 +470,7 @@ litellm.failure_callback = [logger]
 @router.post("/v1/models")
 @router.get("/models")  # if project requires model list
 def model_list():
-    if user_model != None:
+    if user_model is not None:
         return dict(
             data=[
                 {
@@ -487,20 +482,19 @@ def model_list():
             ],
             object="list",
         )
-    else:
-        all_models = litellm.utils.get_valid_models()
-        return dict(
-            data=[
-                {
-                    "id": model,
-                    "object": "model",
-                    "created": 1677610602,
-                    "owned_by": "openai",
-                }
-                for model in all_models
-            ],
-            object="list",
-        )
+    all_models = litellm.utils.get_valid_models()
+    return dict(
+        data=[
+            {
+                "id": model,
+                "object": "model",
+                "created": 1677610602,
+                "owned_by": "openai",
+            }
+            for model in all_models
+        ],
+        object="list",
+    )
 
 
 @router.post("/v1/completions")

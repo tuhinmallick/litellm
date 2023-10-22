@@ -222,19 +222,7 @@ def convert_messages_to_prompt(model, messages, provider, custom_prompt_dict):
         else:
             prompt = prompt_factory(model=model, messages=messages, custom_llm_provider="anthropic")
     else:
-        prompt = ""
-        for message in messages:
-            if "role" in message:
-                if message["role"] == "user":
-                    prompt += (
-                        f"{message['content']}"
-                    )
-                else:
-                    prompt += (
-                        f"{message['content']}"
-                    )
-            else:
-                prompt += f"{message['content']}"
+        prompt = "".join(f"{message['content']}" for message in messages)
     return prompt
 
 
@@ -322,7 +310,7 @@ def completion(
             "inputText": prompt,
             "textGenerationConfig": inference_params,
         })
-    
+
     ## LOGGING
     logging_obj.pre_call(
         input=prompt,
@@ -375,12 +363,11 @@ def completion(
             message=outputText,
             status_code=response.status_code,
         )
-    else:
-        try:
-            if len(outputText) > 0:
-                model_response["choices"][0]["message"]["content"] = outputText
-        except:
-            raise BedrockError(message=json.dumps(outputText), status_code=response.status_code)
+    try:
+        if len(outputText) > 0:
+            model_response["choices"][0]["message"]["content"] = outputText
+    except:
+        raise BedrockError(message=json.dumps(outputText), status_code=response.status_code)
 
     ## CALCULATING USAGE - baseten charges on time, not tokens - have some mapping of cost here. 
     prompt_tokens = len(

@@ -4,12 +4,7 @@ import requests, certifi, ssl
 
 class BaseLLM:
     def create_client_session(self):
-        if litellm.client_session: 
-            session = litellm.client_session
-        else: 
-            session = requests.Session()
-        
-        return session
+        return litellm.client_session if litellm.client_session else requests.Session()
         
     def validate_environment(self):  # set up the environment required to run the model
         pass

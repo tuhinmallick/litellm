@@ -88,7 +88,7 @@ def completion(
 
     prompt = " ".join([message["content"] for message in messages])
 
-    mode = "" 
+    mode = ""
     if model in litellm.vertex_chat_models:
         chat_model = ChatModel.from_pretrained(model)
         mode = "chat"
@@ -101,7 +101,7 @@ def completion(
     else: # vertex_code_chat_models
         chat_model = CodeChatModel.from_pretrained(model)
         mode = "chat"
-    
+
     if mode == "chat":
         chat = chat_model.start_chat()
 
@@ -122,14 +122,14 @@ def completion(
             return model_response
 
         completion_response = text_model.predict(prompt, **optional_params)
-        
+
     ## LOGGING
     logging_obj.post_call(
         input=prompt, api_key=None, original_response=completion_response
     )
 
     ## RESPONSE OBJECT
-    if len(str(completion_response)) > 0: 
+    if str(completion_response) != "": 
         model_response["choices"][0]["message"][
             "content"
         ] = str(completion_response)
@@ -139,7 +139,7 @@ def completion(
     ## CALCULATING USAGE
     prompt_tokens = len(
         encoding.encode(prompt)
-    ) 
+    )
     completion_tokens = len(
         encoding.encode(model_response["choices"][0]["message"].get("content", ""))
     )

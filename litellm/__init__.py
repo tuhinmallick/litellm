@@ -52,14 +52,12 @@ def get_model_cost_map(url: Optional[str]=None):
     try:
         response = requests.get(url)
         response.raise_for_status()  # Raise an exception if request is unsuccessful
-        content = response.json()
-        return content
+        return response.json()
     except:
         import importlib.resources
         import json
         with importlib.resources.open_text("litellm", "model_prices_and_context_window_backup.json") as f:
-            content = json.load(f)
-            return content
+            return json.load(f)
 model_cost = get_model_cost_map()
 custom_prompt_dict:Dict[str, dict] = {}
 ####### THREAD-SPECIFIC DATA ###################
